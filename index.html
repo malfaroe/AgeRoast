@@ -102,14 +102,7 @@
       padding-right: 26px;
     }
 
-    .dp-year {
-      text-align: center;
-      -moz-appearance: textfield;
-    }
-    .dp-year::-webkit-inner-spin-button,
-    .dp-year::-webkit-outer-spin-button { opacity: 0.4; }
-
-    .dp-select:focus, .dp-year:focus {
+    .dp-select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
@@ -286,8 +279,7 @@
 
         <div class="dp-field">
           <span class="dp-label">Year</span>
-          <input type="number" id="inp-year" class="dp-year"
-                 min="1971" max="2025" value="2000">
+          <select id="inp-year" class="dp-select" onchange="updateDays()"></select>
         </div>
       </div>
 
@@ -367,16 +359,24 @@
       const month = parseInt(document.getElementById('sel-month').value);
       const day   = parseInt(document.getElementById('sel-day').value);
       const year  = parseInt(document.getElementById('inp-year').value);
-      if (!year || year < 1971 || year > 2025) return null;
+      if (!year) return null;
       return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     }
 
+    function populateYears() {
+      const sel = document.getElementById('inp-year');
+      const currentYear = new Date().getFullYear();
+      for (let y = currentYear; y >= 1900; y--) {
+        const opt = document.createElement('option');
+        opt.value = y; opt.textContent = y;
+        if (y === 2000) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    populateYears();
     updateDays();
     document.getElementById('sel-day').value = 1;
-    document.getElementById('inp-year').addEventListener('change', updateDays);
-    document.getElementById('inp-year').addEventListener('keydown', e => {
-      if (e.key === 'Enter') generate();
-    });
 
     // ─── Age calculation ──────────────────────────────────────
     function calcAge(birthdate, atDate) {
