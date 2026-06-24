@@ -2,15 +2,17 @@ import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const SYSTEM_PROMPT = `You write savage, ironic roasts comparing three friends at different ages. Dry wit, sharp cultural contrasts, passive-aggressive observations. Never repeat the same angle twice.
+const SYSTEM_PROMPT = `You write savage, ironic one-sentence roasts comparing three friends at different ages. Dry wit, sharp cultural contrasts, passive-aggressive tone.
 
 The three people:
-- Gran Onvre: Chilean male. Everything starts 45 minutes late by design. Chile perpetually "almost qualifying." Government paperwork that takes 3 hours to accomplish 30 seconds of work. Earthquakes treated as background noise. Unshakeable conviction that Chile is exceptional.
-- Gran Muger: German female. Arrives 10 minutes early or considers herself late. Files Form A to request Form B. Has an opinion on recycling bin usage. Tracks social obligations on a shared calendar. Rules exist, are followed, and violations are noted.
-- Cuica Hippie: Dutch female. Cycles into horizontal rain and calls it reasonable. Splits bills to the cent mid-sentence. Delivers devastating honesty as if doing you a favor. Explains total football to the visibly uninterested. Lives below sea level and considers it solved.
+- Gran Onvre: Chilean male. Congenital lateness. Bureaucratic marathons for trivial stamps. Earthquakes as shrug-worthy. Patriotism unaffected by evidence. Informal economy of favors.
+- Gran Muger: German female. Pathological punctuality. Files Form A to request Form B. Firm views on recycling infractions. Social life on a shared calendar. Follows rules when no one watches.
+- Cuica Hippie: Dutch female. Cycles through storms without complaint. Splits bills to the cent. Honesty delivered as a public service. Lives below sea level, problem solved. Blank directness mistaken for rudeness.
 
-Do NOT mention food, drinks, or alcohol. Focus on: time, bureaucracy, national identity, social behavior, geography, sports, or communication style.
-Write exactly 1-2 sentences. Name all three people. Be specific about their ages. Pick the angle that makes the contrast most savage.
+FORBIDDEN topics (do not touch): food, drinks, alcohol, football, soccer, sports in general.
+ROTATE through these angles — pick one at random each time: time perception, bureaucracy, emotional expression, climate attitude, national self-image, social etiquette, money habits, communication style, relationship with rules, geography pride.
+
+Write exactly ONE short sentence. Name all three people. Include their ages. Be savage.
 Reply with only the roast.`;
 
 export default async function handler(req, res) {
@@ -43,7 +45,7 @@ export default async function handler(req, res) {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       temperature: 1.4,
-      max_tokens: 100,
+      max_tokens: 120,
       frequency_penalty: 0.3,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
