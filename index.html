@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Age Roast</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0F0F0F;
+      --surface:     #171717;
+      --border:      #2A2A2A;
+      --text:        #F0F0F0;
+      --muted:       #555555;
+      --accent:      #C8A951;
+      --accent-glow: rgba(200,169,81,0.12);
+      --vivid:       #FF5530;
+      --error:       #E05555;
+      --success:     #5BBF7A;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 20px 80px;
+    }
+
+    .container { width: 100%; max-width: 448px; }
+
+    header { text-align: center; margin-bottom: 52px; }
+
+    h1 {
+      font-size: clamp(36px, 10vw, 52px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    h1 em { font-style: normal; color: var(--accent); }
+
+    .subtitle {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--vivid);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .input-section { display: flex; flex-direction: column; gap: 14px; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--vivid);
+    }
+
+    .date-picker {
+      display: grid;
+      grid-template-columns: 5fr 3fr 4fr;
+      gap: 8px;
+    }
+
+    .dp-field { display: flex; flex-direction: column; gap: 5px; }
+
+    .dp-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--vivid);
+    }
+
+    .dp-select, .dp-year {
+      width: 100%;
+      padding: 13px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .dp-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555555' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      padding-right: 26px;
+    }
+
+    .dp-year {
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+    .dp-year::-webkit-inner-spin-button,
+    .dp-year::-webkit-outer-spin-button { opacity: 0.4; }
+
+    .dp-select:focus, .dp-year:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 17px;
+      background: linear-gradient(135deg, #FF4500 0%, #CC003A 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      box-shadow: 0 4px 20px rgba(255,69,0,0.35);
+    }
+    .btn-primary:hover    { opacity: 0.88; }
+    .btn-primary:active   { transform: scale(0.985); }
+    .btn-primary:disabled { opacity: 0.28; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .msg { font-size: 13px; padding: 11px 14px; border-radius: 8px; display: none; line-height: 1.45; }
+    .msg.error   { background: rgba(224,85,85,0.08); color: var(--error); border: 1px solid rgba(224,85,85,0.18); }
+    .msg.visible { display: block; }
+
+    .divider { height: 1px; background: var(--border); margin: 40px 0; display: none; }
+    .divider.visible { display: block; }
+
+    .result-section { display: none; flex-direction: column; gap: 20px; }
+    .result-section.visible { display: flex; }
+
+    .phrase-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 26px 24px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+    }
+
+    .phrase {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(15px, 4.2vw, 18px);
+      line-height: 1.72;
+      font-style: italic;
+      color: var(--text);
+      transition: opacity 0.3s ease;
+      width: 100%;
+    }
+
+    .loading-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      width: 100%;
+    }
+    .loading-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: bounce 1.1s infinite ease-in-out;
+    }
+    .loading-dots span:nth-child(1) { animation-delay: 0s; }
+    .loading-dots span:nth-child(2) { animation-delay: 0.18s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40%            { transform: translateY(-7px); opacity: 1; }
+    }
+
+    .actions { display: flex; gap: 10px; }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 13px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .btn-secondary:hover    { border-color: var(--accent); }
+    .btn-secondary:active   { background: var(--surface); }
+    .btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-secondary.copied   { border-color: var(--success); color: var(--success); }
+
+    .ages { display: flex; gap: 8px; }
+
+    .age-chip {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 8px;
+      text-align: center;
+    }
+    .age-chip.unborn { border-color: #222222; }
+
+    .chip-name {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--vivid);
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chip-age {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .age-chip.unborn .chip-age { color: #FF3B30; }
+
+    .chip-detail {
+      font-size: 9px;
+      color: var(--vivid);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 360px) {
+      .chip-name { font-size: 8px; }
+      .chip-age  { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <h1>Age <em>Roast</em></h1>
+      <p class="subtitle">one date · three realities</p>
+    </header>
+
+    <section class="input-section">
+      <span class="section-label">What date are we roasting?</span>
+
+      <div class="date-picker">
+        <div class="dp-field">
+          <span class="dp-label">Month</span>
+          <select id="sel-month" class="dp-select" onchange="updateDays()">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9" selected>September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+
+        <div class="dp-field">
+          <span class="dp-label">Day</span>
+          <select id="sel-day" class="dp-select"></select>
+        </div>
+
+        <div class="dp-field">
+          <span class="dp-label">Year</span>
+          <input type="number" id="inp-year" class="dp-year"
+                 min="1971" max="2025" value="2000">
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btn-generate" onclick="generate()">
+        Generate the Roast
+      </button>
+      <div class="msg error" id="msg-error"></div>
+    </section>
+
+    <div class="divider" id="divider"></div>
+
+    <section class="result-section" id="result-section">
+      <div class="phrase-wrapper" id="phrase-wrapper">
+        <p class="phrase" id="phrase-text"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn-secondary" id="btn-otra" onclick="otra()">↻ &nbsp;Roast Again</button>
+        <button class="btn-secondary" id="btn-copy" onclick="copyPhrase()">Copy</button>
+      </div>
+
+      <div class="ages" id="ages-container"></div>
+    </section>
+
+  </div>
+
+  <script>
+    const FRIENDS = [
+      { name: "Gran Onvre",   birthdate: "1970-05-04", country: "Chilean" },
+      { name: "Gran Muger",   birthdate: "1983-09-05", country: "German"  },
+      { name: "Cuica Hippie", birthdate: "1986-11-15", country: "Dutch"   },
+    ];
+
+    let lastFriends   = null;
+    let lastPhraseIdx = -1;
+
+    // ─── Date picker ─────────────────────────────────────────
+    const MONTHS_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+    function isLeapYear(y) {
+      return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+    }
+
+    function daysInMonth(month, year) {
+      if (month === 2) return isLeapYear(year) ? 29 : 28;
+      return MONTHS_DAYS[month - 1];
+    }
+
+    function updateDays() {
+      const month  = parseInt(document.getElementById('sel-month').value);
+      const year   = parseInt(document.getElementById('inp-year').value) || 2000;
+      const daySel = document.getElementById('sel-day');
+      const prev   = parseInt(daySel.value) || 1;
+      const max    = daysInMonth(month, year);
+      daySel.innerHTML = '';
+      for (let d = 1; d <= max; d++) {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        daySel.appendChild(opt);
+      }
+      daySel.value = Math.min(prev, max);
+    }
+
+    function getSelectedDate() {
+      const month = parseInt(document.getElementById('sel-month').value);
+      const day   = parseInt(document.getElementById('sel-day').value);
+      const year  = parseInt(document.getElementById('inp-year').value);
+      if (!year || year < 1971 || year > 2025) return null;
+      return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+
+    updateDays();
+    document.getElementById('sel-day').value = 1;
+    document.getElementById('inp-year').addEventListener('change', updateDays);
+    document.getElementById('inp-year').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generate();
+    });
+
+    // ─── Age calculation ──────────────────────────────────────
+    function calcAge(birthdate, atDate) {
+      const b = new Date(birthdate + 'T00:00:00');
+      const d = new Date(atDate    + 'T00:00:00');
+      if (d >= b) {
+        let y = d.getFullYear() - b.getFullYear();
+        let m = d.getMonth()    - b.getMonth();
+        let days = d.getDate()  - b.getDate();
+        if (days < 0) { m--;  days += 30; }
+        if (m    < 0) { y--;  m    += 12; }
+        return { born: true, y, m, d: days };
+      } else {
+        let y = b.getFullYear() - d.getFullYear();
+        let m = b.getMonth()    - d.getMonth();
+        let days = b.getDate()  - d.getDate();
+        if (days < 0) { m--;  days += 30; }
+        if (m    < 0) { y--;  m    += 12; }
+        return { born: false, y: -y, m: -m, d: -days };
+      }
+    }
+
+    // ─── Generate ─────────────────────────────────────────────
+    async function generate() {
+      document.getElementById('msg-error').classList.remove('visible');
+
+      const dateVal = getSelectedDate();
+      if (!dateVal) { showError('Enter a valid year between 1971 and 2025.'); return; }
+
+      const allFriends = FRIENDS.map(f => ({
+        name: f.name,
+        country: f.country,
+        ...calcAge(f.birthdate, dateVal),
+      }));
+
+      if (!allFriends.some(f => f.born)) {
+        showError("Pick a date after May 4, 1970 — that's when the oldest of the group arrived.");
+        return;
+      }
+
+      lastFriends = allFriends;
+      renderAges(allFriends);
+      revealResult();
+      setLoading(true);
+
+      const payload = {
+        date: dateVal,
+        friends: allFriends.map(f => ({
+          name: f.name,
+          country: f.country,
+          age_years:  f.y,
+          age_months: f.m,
+          age_days:   f.d,
+        })),
+      };
+
+      try {
+        const res  = await fetch('/api/roast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+        showPhrase(data.phrase);
+      } catch (err) {
+        setLoading(false);
+        showError(err.message || 'Failed to generate roast. Try again.');
+      }
+    }
+
+    async function otra() {
+      if (!lastFriends) return;
+      const btn = document.getElementById('btn-otra');
+      btn.disabled = true;
+      setTimeout(() => { btn.disabled = false; }, 1000);
+
+      setLoading(true);
+
+      const dateVal = getSelectedDate();
+      const payload = {
+        date: dateVal,
+        friends: lastFriends.map(f => ({
+          name: f.name,
+          country: f.country,
+          age_years:  f.y,
+          age_months: f.m,
+          age_days:   f.d,
+        })),
+      };
+
+      try {
+        const res  = await fetch('/api/roast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+        showPhrase(data.phrase);
+      } catch (err) {
+        setLoading(false);
+        showError(err.message || 'Failed to generate roast. Try again.');
+      }
+    }
+
+    // ─── UI helpers ───────────────────────────────────────────
+    function setLoading(on) {
+      const wrapper = document.getElementById('phrase-wrapper');
+      const phrase  = document.getElementById('phrase-text');
+      const btnOtra = document.getElementById('btn-otra');
+      const btnGen  = document.getElementById('btn-generate');
+
+      btnGen.disabled  = on;
+      btnOtra.disabled = on;
+
+      if (on) {
+        phrase.style.display = 'none';
+        if (!wrapper.querySelector('.loading-dots')) {
+          const dots = document.createElement('div');
+          dots.className = 'loading-dots';
+          dots.innerHTML = '<span></span><span></span><span></span>';
+          wrapper.appendChild(dots);
+        }
+      } else {
+        const dots = wrapper.querySelector('.loading-dots');
+        if (dots) dots.remove();
+        phrase.style.display = '';
+      }
+    }
+
+    function showPhrase(text) {
+      setLoading(false);
+      const el = document.getElementById('phrase-text');
+      el.style.opacity = '0';
+      el.textContent   = text;
+      void el.offsetWidth;
+      el.style.opacity = '1';
+    }
+
+    function revealResult() {
+      document.getElementById('divider').classList.add('visible');
+      document.getElementById('result-section').classList.add('visible');
+      setTimeout(() => {
+        document.getElementById('result-section')
+          .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 80);
+    }
+
+    function renderAges(friends) {
+      const container = document.getElementById('ages-container');
+      container.innerHTML = '';
+      friends.forEach(f => {
+        const chip = document.createElement('div');
+        chip.className = 'age-chip' + (f.born ? '' : ' unborn');
+        if (f.born) {
+          chip.innerHTML = `
+            <div class="chip-name">${f.name}</div>
+            <div class="chip-age">${f.y}</div>
+            <div class="chip-detail">${f.m}m ${f.d}d</div>`;
+        } else {
+          chip.innerHTML = `
+            <div class="chip-name">${f.name}</div>
+            <div class="chip-age">${f.y}</div>
+            <div class="chip-detail">yrs to birth</div>`;
+        }
+        container.appendChild(chip);
+      });
+    }
+
+    function copyPhrase() {
+      const phrase = document.getElementById('phrase-text').textContent;
+      if (!phrase) return;
+      const btn = document.getElementById('btn-copy');
+      const markCopied = () => {
+        btn.textContent = '✓ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      };
+      navigator.clipboard.writeText(phrase).then(markCopied).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = phrase;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        markCopied();
+      });
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('msg-error');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+  </script>
+
+</body>
+</html>
