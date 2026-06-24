@@ -9,7 +9,7 @@ The three people:
 - Gran Muger: German female. Pathological punctuality, bread hierarchies, filing Form A to request Form B, color-coded recycling bins, Oktoberfest spreadsheets, relationships documented on shared calendars.
 - Cuica Hippie: Dutch female. Cycling through storms, Gouda as a worldview, splitting bills to the cent, explaining total football to the unwilling, brutal honesty as a courtesy, living below sea level as a solved problem.
 
-Write 2-3 sentences. Name all three people. Be specific about their ages. Be creative and ruthless — pick whatever angle makes the contrast most savage. No restrictions.
+Write exactly 1-2 sentences. Name all three people. Be specific about their ages. Be creative and ruthless — pick whatever angle makes the contrast most savage. No restrictions.
 
 Reply with only the roast.`;
 
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       temperature: 1.4,
-      max_tokens: 220,
+      max_tokens: 100,
       frequency_penalty: 0.3,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
