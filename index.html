@@ -321,7 +321,19 @@
       { name: "Cuica Hippie", birthdate: "1986-11-15", country: "Dutch"   },
     ];
 
-    let lastFriends   = null;
+    const SCENES = [
+      "a Monday morning commute that is not going as planned",
+      "a Sunday family lunch with no scheduled end time",
+      "standing in a government office queue for a routine stamp",
+      "watching a football match that is not going their country's way",
+      "discovering an unexpected charge on a bill they don't remember signing",
+      "a Friday night out that outlasted everyone's stated intentions",
+      "waking up with a new physical complaint that wasn't there yesterday",
+      "attending a social event where someone said something extremely honest",
+    ];
+
+    let lastFriends = null;
+    let lastScene   = null;
     let lastPhraseIdx = -1;
 
     // ─── Date picker ─────────────────────────────────────────
@@ -406,12 +418,14 @@
       }
 
       lastFriends = allFriends;
+      lastScene   = SCENES[Math.floor(Math.random() * SCENES.length)];
       renderAges(allFriends);
       revealResult();
       setLoading(true);
 
       const payload = {
         date: dateVal,
+        scene: lastScene,
         friends: allFriends.map(f => ({
           name: f.name,
           country: f.country,
@@ -445,8 +459,10 @@
       setLoading(true);
 
       const dateVal = getSelectedDate();
+      lastScene = SCENES[Math.floor(Math.random() * SCENES.length)];
       const payload = {
         date: dateVal,
+        scene: lastScene,
         friends: lastFriends.map(f => ({
           name: f.name,
           country: f.country,

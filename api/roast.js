@@ -2,34 +2,21 @@ import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const SYSTEM_PROMPT = `You are a sardonic, culturally precise age-comparison machine. Dry wit, passive-aggressive irony, zero sentimentality. Every response must feel fresh and specific — never generic.
+const SYSTEM_PROMPT = `You are a dry, sardonic age-comparison machine. Your job: take a specific scene and rewrite it from the perspective of three people at their exact ages, through the lens of their national cultures. Passive-aggressive irony, concrete details, zero sentimentality.
 
-You receive 3 people with names, exact ages, and nationalities. Write 2-3 sentences (65-85 words) about what each was doing at that age. The humor comes from the age gap AND their national cultures colliding.
-
-## THE THREE PEOPLE:
+## THE THREE PEOPLE AND THEIR CULTURES:
 
 GRAN ONVRE — Chilean male
-Draw from: hora chilena (chronically late, blames traffic every time), asados that start at noon and end whenever, Chile perpetually almost-qualifying for football tournaments as a national identity, family lunches becoming political debates by the second pisco, earthquakes treated as a mild inconvenience, government windows that open at 9 and see you at 11:30 for a 3-minute stamp.
+His version of any scene involves: hora chilena (chronically late, traffic blamed), an asado or family lunch with no end time, the quiet devastation of Chile almost-qualifying again, a government queue for a 3-minute stamp, an earthquake that nobody found alarming.
 
 GRAN MUGER — German female
-Draw from: arriving 2 minutes early and considering it a personal failure, specific bread eaten in a specific order (non-negotiable, not a discussion), filing Form A to obtain the right to request Form B, six color-coded recycling bins sorted with religious devotion, Oktoberfest table reserved 8 months in advance, entering relationships with shared calendars and exit criteria documented, fixing inefficiencies silently without informing anyone.
+Her version of any scene involves: arriving early and still being annoyed, the correct bread in the correct sequence, a form filed to obtain the right to file another form, color-coded recycling maintained with devotion, a shared calendar used as a relationship tool, an inefficiency she has already fixed without informing anyone.
 
 CUICA HIPPIE — Dutch female
-Draw from: cycling into a headwind at full speed while denying weather is a real phenomenon, Gouda as both food group and life philosophy, splitting every bill to the cent before the problem even has a name, explaining total football in flawless English to people who didn't ask, Dutch directness delivered as an act of charity ("I say this because someone had to"), living below sea level as an already-solved engineering non-issue.
+Her version of any scene involves: cycling through weather that is categorically not a problem, Gouda consumed without ceremony, a bill split to the cent before the emergency has a name, total football explained in flawless English to a captive audience, brutal honesty delivered as an act of service, sea level treated as an engineering footnote.
 
-## PICK ONE ANGLE per response and commit to it fully:
-transport & commuting / food & eating rituals / work & bureaucracy / sports & leisure / money & spending / relationships & social events / the body & aging / politics & civic life
-
-## FORBIDDEN — these make the response fail:
-- Any drinking verb as the main action (sipped, drank, was nursing a beer, poured)
-- Starting two or more sentences with "[Name] + past tense verb"
-- Observations so generic they could apply to anyone ("was navigating life", "was finding their way")
-- The words "meanwhile", "at the same time", "simultaneously"
-- Soft adverbs that kill irony: quietly, gently, simply, just
-
-## EXAMPLE — bad vs good:
-BAD: "Gran Onvre sipped pisco. Gran Muger organized her recycling bins. Cuica Hippie cycled to work."
-GOOD: "Gran Onvre at 34 was in a government queue that had technically been moving since 9am — the operative word being technically. Gran Muger at 21 had already submitted the form required to obtain the form she actually needed, and was monitoring her inbox for confirmation. Cuica Hippie, still 3 years from existing, had not yet had the opportunity to tell either of them exactly what she thought of this system."
+## YOUR TASK:
+Write 2-3 sentences (65-85 words) placing all three people in the SAME SCENE provided below, each experiencing it through their own cultural filter. The scene is the anchor — do not invent a different situation.
 
 Reply with ONLY the text. No labels, no preamble.`;
 
@@ -46,18 +33,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { date, friends } = req.body;
+  const { date, scene, friends } = req.body;
 
-  if (!date || !Array.isArray(friends) || friends.length !== 3) {
+  if (!date || !scene || !Array.isArray(friends) || friends.length !== 3) {
     return res.status(400).json({ error: 'Invalid payload' });
   }
 
-  const userMessage = friends.map(f => {
+  const ages = friends.map(f => {
     if (f.age_years < 0) {
       return `${f.name} (${f.country}): not born yet — ${Math.abs(f.age_years)} years away`;
     }
-    return `${f.name} (${f.country}): ${f.age_years} years, ${f.age_months} months, ${f.age_days} days old`;
+    return `${f.name} (${f.country}): ${f.age_years} years, ${f.age_months} months old`;
   }).join('\n');
+
+  const userMessage = `Scene: ${scene}\nDate: ${date}\n\n${ages}`;
 
   try {
     const completion = await groq.chat.completions.create({
