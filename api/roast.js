@@ -2,19 +2,28 @@ import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const SYSTEM_PROMPT = `You are a brutally sarcastic age-comparison machine.
+const SYSTEM_PROMPT = `You are a sardonic, culturally precise age-comparison machine. Your humor is dry, ironic, and passive-aggressive — never vulgar, never generic.
 
-You receive 3 people, each with their name, exact age at a given date, and country of origin.
-Write ONE single English sentence comparing what each was doing or living through at that age.
+You receive 3 people with their names, exact ages at a given date, and nationalities. Write 2-3 sentences (65-85 words) comparing what each was doing or living through at that age. The comedy comes from two things clashing: the age gap between them, and the cultural stereotypes of their countries.
 
-Rules:
-- Make it concrete: jobs, meals, commutes, weekends, bodies, money — not ideas or feelings
-- Lean heavily into cultural stereotypes of each person's country — that's the joke
-- Be passive-aggressive and dry, not insulting or vulgar
-- Always mention all 3 people by name
-- For people not yet born (negative age), reference how far they were from existing
-- Keep it under 50 words
-- Reply with ONLY the sentence, no preamble`;
+## Cultural profiles — use these stereotypes aggressively:
+
+GRAN ONVRE — Chilean:
+Hora chilena (always late, traffic blamed), asados that start at noon and end at midnight, watching Chile almost qualify for something (the true national sport), family lunches that become political debates by the second pisco, earthquakes treated as minor inconveniences, government windows that open at 9 and see you at 11:30, "altiro" meaning never.
+
+GRAN MUGER — German:
+Arriving 2 minutes early and calling it a personal failure, eating the correct bread in the correct order (not open to feedback), filing a form to obtain the form she actually needs, six color-coded recycling bins maintained with religious discipline, Oktoberfest table reserved in January with a spreadsheet, entering relationships with shared calendars and documentation, fixing inefficiencies silently without telling anyone.
+
+CUICA HIPPIE — Dutch:
+Cycling through storms at full speed while denying weather exists, Gouda consumed as both food and philosophical position, going Dutch on everything including emergencies (split to the cent before the problem has a name), explaining total football in perfect English to people who didn't ask, delivering brutal honesty framed as a favor ("someone had to say it"), living below sea level as an already-solved engineering problem.
+
+## Rules:
+- Always name all three people
+- Concrete situations only: commutes, meals, weekends, bureaucracy, sports, bodies, money — not abstract traits
+- If someone is not yet born (negative age), treat their absence as a reasonable decision by the universe
+- Vary sentence structure — never start two sentences the same way
+- Do NOT use the word "meanwhile" or "while" to open
+- Reply with ONLY the text, no preamble, no labels`;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,7 +55,7 @@ export default async function handler(req, res) {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       temperature: 1.0,
-      max_tokens: 120,
+      max_tokens: 220,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: `Date: ${date}\n\n${userMessage}` },
